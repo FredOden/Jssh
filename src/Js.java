@@ -3,11 +3,6 @@
  *
  * @author: fred.oden@gmail.com
  */
-//package com.lourah.android.lourahjsf;
-
-//import android.app.Activity;
-//import android.content.res.AssetManager;
-
 import java.io.IOException;
 import java.text.MessageFormat;
 //import java.util.Locale;
@@ -19,63 +14,6 @@ import org.mozilla.javascript.Context;
 import org.mozilla.javascript.EvaluatorException;
 //import org.mozilla.javascript.ScriptRuntime;
 
-/**
- *
- * @20201219: Deprecated as this issue was solved in Rhino 1.7.13
- *
- * Js : javascript interpreter, is a JsFramework ErrorReporter to properly
- * report errors, warning & exceptions
- *
- */
-public class Js implements ErrorReporter {
-    private Context cx;
-    private Scriptable scope;
-    private static JsFramework activity;
-
-    /**
-     * To solve the issue: Messages.properties is not accessible in Rhino jar file ...
-     *
-    private static class AssetMessageProvider implements ScriptRuntime.MessageProvider {
-        **
-         * was necessary to move Messages.properties files to assets directory
-         * making properties files accessible as a ResourceBundle : error messages from
-         * javascript compilation & interpretation can be fully correctly displayed.
-         *
-         * Todo: multilingual support
-         *
-         * @param messageId   Entry in the messageId
-         * @param arguments   of the message (variable number of arguments)
-         * @return
-         *
-        @Override
-        public String getMessage(String messageId, Object[] arguments) {
-            AssetManager assetManager = activity.getAssets();
-            try {
-                ResourceBundle resourceBundle =
-                        new PropertyResourceBundle(
-                                assetManager.open("Messages.properties")
-                        );
-
-                String formatString;
-
-                try {
-                    formatString = resourceBundle.getString(messageId);
-                } catch (java.util.MissingResourceException mre) {
-                    throw new RuntimeException(
-                            "AssetMessageProvider::no message resource for property::"
-                                    + messageId
-                    );
-                }
-
-                MessageFormat formatter = new MessageFormat(formatString);
-
-                return formatter.format(arguments);
-            } catch (IOException e) {
-                return "failed to load bundle::" + e.getMessage();
-            }
-        }
-    }
-    */
 
     /**
      * JsObject: for the result of a javascript execution
