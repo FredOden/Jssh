@@ -14,6 +14,10 @@ import org.mozilla.javascript.Context;
 import org.mozilla.javascript.EvaluatorException;
 //import org.mozilla.javascript.ScriptRuntime;
 
+class Js {
+    private Context cx;
+    private Scriptable scope;
+    private JsActivity activity;
 
     /**
      * JsObject: for the result of a javascript execution
@@ -42,11 +46,11 @@ import org.mozilla.javascript.EvaluatorException;
      * Android activity
      * @param activity  Android activity where javascript interpreter is used
      */
-    public Js(Activity activity) {
+    public Js(JsActivity activity) {
         // @20201219: Rhino 1.7.13 Makes massage provider as final
         //ScriptRuntime.messageProvider = new AssetMessageProvider();
         // @issue: must use this.activity non statically ...
-        this.activity = (JsFramework) activity;
+        this.activity = activity;
         cx = Context.enter();
         cx.setOptimizationLevel(-1);
         // Added for Rhino-1.7.11.jar version
@@ -56,7 +60,8 @@ import org.mozilla.javascript.EvaluatorException;
                         + org.mozilla.javascript.Context.getCurrentContext().getImplementationVersion());
         scope = this.cx.initStandardObjects();
         ScriptableObject.putProperty(scope, "Activity", Context.javaToJS(activity, scope));
-        Context.getCurrentContext().setErrorReporter(this);
+        ScriptableObject.putProperty(scope, "console", Context.javaToJS(activity, scope));
+        //Context.getCurrentContext().setErrorReporter(this);
     }
 
     /**
@@ -96,7 +101,6 @@ import org.mozilla.javascript.EvaluatorException;
      * @param lineSource
      * @param lineOffset
      */
-    @Override
     public void error(String message, String sourceName, int line, String lineSource, int lineOffset) {
         activity.reportError("error::" + message + "::at " + sourceName + "::(" + line + ":" + lineOffset + ")::" + lineSource);
     }
@@ -109,7 +113,6 @@ import org.mozilla.javascript.EvaluatorException;
      * @param lineSource
      * @param lineOffset
      */
-    @Override
     public void warning(String message, String sourceName, int line, String lineSource, int lineOffset) {
         activity.reportWarning("warning::" + message + "::at " + sourceName + "::(" + line + ":" + lineOffset + ")::" + lineSource);
     }
@@ -123,7 +126,6 @@ import org.mozilla.javascript.EvaluatorException;
      * @param lineOffset
      * @return
      */
-    @Override
     public EvaluatorException runtimeError(String message, String sourceName, int line, String lineSource, int lineOffset) {
         activity.reportError("runtime error::" + message + "::at " + sourceName + "::(" + line + ":" + lineOffset + ")::" + lineSource);
         return new EvaluatorException(message, sourceName, line, lineSource, lineOffset);
