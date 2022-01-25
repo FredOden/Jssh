@@ -15,6 +15,9 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Date;
+import java.text.SimpleDateFormat;
+import java.lang.System;
 
 /**
  * The encapsulating Android activity for the possibles javascript applications
@@ -42,11 +45,17 @@ public class Jssh
      void report(String m);
   }
 
+  public interface Logger {
+		  void log(String s);
+  }
+
+  public static SimpleDateFormat simpleDateFormat = new SimpleDateFormat("[yyyy-MM-dd hh:mm:ss]");
   /**
    * TO BE OPTIMIZED
    */
   public void log(String s) {
-    System.out.println(s);
+	Date now = new Date();
+    logger.log(simpleDateFormat.format(now) + s);
   }
   
   private Jssh self = this;
@@ -62,6 +71,12 @@ public class Jssh
     }
   };
 
+  public Logger logger = new Logger() {
+    public void log(String m) {
+	System.out.println(m);
+    }
+  };
+
   /**
    * As notification appears on the user interface, the report is always
    * executed in the UI Thread of android. (As javascript application can be
@@ -69,7 +84,8 @@ public class Jssh
    * @param error  message
    */
   public void reportError(String error) {
-        errorReporter.report("reportError::" + error);
+		Date now = new Date();
+        errorReporter.report(simpleDateFormat.format(now) + "reportError::" + error);
   }
 
   /**
@@ -87,13 +103,41 @@ public class Jssh
     System.out.println("jssh::started::" + args[0]);
     new Jssh(args[0]);
    }
+
   /**
    * Create this activity
    * @param savedInstanceState
    */
-  public Jssh(String script) {
-    js = new Js(this);
-    System.out.println(importScript(script).s);
+  public Jssh(String scriptFile) {
+		  String progress = "init";
+		  try {
+		  progress = "load scriptFile::" + scriptFile;
+		  String script = path2String(scriptFile);
+		  progress = "load starter::";
+		  String jsshjs = path2String(System.getenv("JSSH_STARTER"));
+		  progress = "load JSSH_DIR::";
+		  jsshjs.replaceAll("@@@JSSH_DIR@@@", System.getenv("JSSH_DIR"));
+		  progress = "load JSSH_FRAMEWORK_DIR::";
+		  jsshjs.replaceAll("@@@JSSH_FRAMEWORK_DIR@@@", System.getenv("JSSH_FRAMEWORK_DIR"));
+		  progress = "load JSSH_RHINO::";
+		  jsshjs.replaceAll("@@@JSSH_RHINO@@@", System.getenv("JSSH_RHINO"));
+		  File fScriptFile = new File(scriptFile);
+		  String scriptFileLocation = fScriptFile.getParent();
+		  log("scriptFileLocation::'" + scriptFileLocation + "'");
+		  String name = fScriptFile.getName();
+		  log("name::'" + name + "'");
+		  progress = "load SCRIPT_FILE_LOCATION::";
+		  jsshjs.replaceAll("@@@SCRIPT_FILE_LOCATION@@@", scriptFileLocation);
+		  progress = "load JS_APP_NAME::";
+		  jsshjs.replaceAll("@@@JS_APP_NAME@@@", name);
+		  progress = "load SCRIPT::";
+		  jsshjs.replaceAll("@@@SCRIPT@@@", script);
+		  log("LOADED::'" + jsshjs + "'");
+    	  js = new Js(this);
+          System.out.println(importScript(script).s);
+		  } catch(Exception e) {
+				  reportError("load::" + scriptFile + "::" + progress + "::" + e);
+		  }
   }
 
   //public static Charset encoding = StandardCharsets.UTF_8;
@@ -169,6 +213,13 @@ public class Jssh
     }
     return o;
   }
+
+  /*
+  private Js.JsObject loadScript(String scriptname) {
+		  Js.JsObject o;
+  }
+  */
+
 
   // SHOULD BE DEPRECATED
   public void onBackPressed() {
