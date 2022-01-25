@@ -113,28 +113,33 @@ public class Jssh
 		  try {
 		  progress = "load scriptFile::" + scriptFile;
 		  String script = path2String(scriptFile);
+		  //log("script::'" + script + "'");
 		  progress = "load starter::";
 		  String jsshjs = path2String(System.getenv("JSSH_STARTER"));
-		  progress = "load JSSH_DIR::";
-		  jsshjs.replaceAll("@@@JSSH_DIR@@@", System.getenv("JSSH_DIR"));
+		  //log("load JSSH_DIR::'" + System.getenv("JSSH_DIR") +"'");
+		  progress = "load JSSH_DIR::" + System.getenv("JSSH_DIR");
+		  jsshjs = jsshjs.replaceAll("@@@JSSH_DIR@@@", System.getenv("JSSH_DIR"));
 		  progress = "load JSSH_FRAMEWORK_DIR::";
-		  jsshjs.replaceAll("@@@JSSH_FRAMEWORK_DIR@@@", System.getenv("JSSH_FRAMEWORK_DIR"));
+		  jsshjs = jsshjs.replaceAll("@@@JSSH_FRAMEWORK_DIR@@@", System.getenv("JSSH_FRAMEWORK_DIR"));
 		  progress = "load JSSH_RHINO::";
-		  jsshjs.replaceAll("@@@JSSH_RHINO@@@", System.getenv("JSSH_RHINO"));
+		  //log("load JSSH_RHINO::'" + System.getenv("JSSH_RHINO") +"'");
+		  jsshjs = jsshjs.replaceAll("@@@JSSH_RHINO@@@", System.getenv("JSSH_RHINO"));
 		  File fScriptFile = new File(scriptFile);
 		  String scriptFileLocation = fScriptFile.getParent();
-		  log("scriptFileLocation::'" + scriptFileLocation + "'");
+		  if (scriptFileLocation == null) scriptFileLocation = ".";
+		  //log("scriptFileLocation::'" + scriptFileLocation + "'");
 		  String name = fScriptFile.getName();
-		  log("name::'" + name + "'");
+		  //log("name::'" + name + "'");
 		  progress = "load SCRIPT_FILE_LOCATION::";
-		  jsshjs.replaceAll("@@@SCRIPT_FILE_LOCATION@@@", scriptFileLocation);
+		  jsshjs = jsshjs.replaceAll("@@@SCRIPT_FILE_LOCATION@@@", scriptFileLocation);
 		  progress = "load JS_APP_NAME::";
-		  jsshjs.replaceAll("@@@JS_APP_NAME@@@", name);
+		  jsshjs = jsshjs.replaceAll("@@@JS_APP_NAME@@@", name);
 		  progress = "load SCRIPT::";
-		  jsshjs.replaceAll("@@@SCRIPT@@@", script);
-		  log("LOADED::'" + jsshjs + "'");
+		  jsshjs = jsshjs.replaceAll("@@@SCRIPT@@@", "console.log('Asset loaded');");
+		  //log("LOADED::'" + jsshjs + "'");
     	  js = new Js(this);
-          System.out.println(importScript(script).s);
+		  loadScript(jsshjs, System.getenv("JSSH_LOADER"));
+		  log(name + "::" + loadScript(script, scriptFile).s);
 		  } catch(Exception e) {
 				  reportError("load::" + scriptFile + "::" + progress + "::" + e);
 		  }
@@ -206,6 +211,7 @@ public class Jssh
    * @return execution status or value
    */
   public Js.JsObject importScript(String scriptName) {
+		  log("importScript::scriptName::" + scriptName);
     Js.JsObject o;
     o = js.eval(path2String(scriptName), scriptName);
     if (!o.ok) {
@@ -214,46 +220,15 @@ public class Jssh
     return o;
   }
 
-  /*
-  private Js.JsObject loadScript(String scriptname) {
+  private Js.JsObject loadScript(String script, String scriptName) {
 		  Js.JsObject o;
-  }
-  */
-
-
-  // SHOULD BE DEPRECATED
-  public void onBackPressed() {
-    String script = "Lourah.jsFramework.onBackPressed();";
-    Js.JsObject o =
-           js.eval(script, "JsFramework.java");
-           if(!o.ok) {
-                reportError("LourahJsFramework::onBackPressed::"
-                    + o.s
-                   );
-                return;
-           }
-    if (o.s.equals("false")) {
-      //super.onBackPressed();
-    }
+		  o = js.eval(script, scriptName);
+		  if (!o.ok) {
+				  reportError("loadScript::" + o.s);
+		  }
+		  return o;
   }
 
-  /**
-   * To redirect Activity events to javascript
-   * @param onEvent (name of Android activity event) @see Lourah/JsFramework/starter.js
-   */
-  protected void androidHandler(String onEvent) {
-    String script = "(function() {try {var handler = (Lourah !== undefined)?Lourah.jsFramework.getAndroidOnHandler('" + onEvent + "'):undefined;"
-           + "if (handler !== undefined) { handler(); }} catch(e){}})()";
-    Js.JsObject o =
-           js.eval(script, "JsFramework.java");
-           if(!o.ok) {
-                reportError("LourahJsFramework::androidHandler::"
-                    + onEvent + "::"
-                    + o.s
-                   );
-                return;
-           }
-  }
 
   /**
    * for display purpose
@@ -266,9 +241,4 @@ public class Jssh
     e.printStackTrace(pw);
     return "{" + sw.toString() + "}";
   }
-
-  /*
-       PERMISSIONS HANDLING BELOW ... TO MAKE IT CLEAN
-   */
-
 }
