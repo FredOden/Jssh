@@ -263,3 +263,5 @@ try {
 	} catch(e) {
 	console.log("startstop::error::" + e);
 }
+
+"LIVE";
