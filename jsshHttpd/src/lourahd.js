@@ -6,12 +6,16 @@ console.log("LOURAD::Initializing...");
 
 console.log("LOURAD::JSSH_HTTPD::" + JSSH_HTTPD);
 console.log("LOURAD::JSSH::" + JSSH_HTTPD);
+/*
 Lourah.jsFramework = {
 	parentDir: () => JSSH + "/framework"
 	,dir: () => JSSH_HTTPD + "/src"
 	,name: () => "demo.http"
 	,scripts: () => JSSH_HTTPD + "/scripts/"
 };
+*/
+Lourah.jsFramework.scripts = () => JSSH_HTTPD + "/scripts/";
+
 Activity.importScript(Lourah.jsFramework.parentDir() + "/Lourah.http.Protocol.js");
 Activity.importScript(Lourah.jsFramework.parentDir() + "/Lourah.socket.Server.js");
 Activity.importScript(Lourah.jsFramework.parentDir() + "/Lourah.http.js2xml.J2X.js");
@@ -84,7 +88,8 @@ function startStop() {
           console.log("/lourah::" + ex.getUri().file);
 		  var href = ex.getUri().file.split('/');
 		  href.shift();href.shift();
-		  var ret = Activity.importScript(Lourah.jsFramework.scripts() + href.join('/')).s;
+		  //var ret = Activity.importScript(Lourah.jsFramework.scripts() + href.join('/')).s;
+		  var ret = Activity.spawnScript(Lourah.jsFramework.scripts() + href.join('/')).s;
 		  console.log("/lourah::ret" + ret);
           try {
             Lourah.http.Toolkit.js2xmlHandler(

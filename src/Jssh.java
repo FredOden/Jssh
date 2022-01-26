@@ -22,7 +22,7 @@ import java.lang.System;
 public class Jssh implements JsActivity {
 
   private Js js;
-  private Jssh self = this;
+  private String starter; //computed version of assets starter to build globals (Lourah) at each run of scripts
 
   /**
    * To make possible to develop specific errorReporter from javascript
@@ -100,8 +100,6 @@ public class Jssh implements JsActivity {
   }
 
 
-  static boolean first = true;
-
   public static void main (String[] args){
     System.out.println("jssh::started::" + args[0]);
     new Jssh(args[0]);
@@ -134,8 +132,9 @@ public class Jssh implements JsActivity {
 		  jsshjs = jsshjs.replaceAll("@@@JS_APP_NAME@@@", name);
 		  progress = "load SCRIPT::";
 		  jsshjs = jsshjs.replaceAll("@@@SCRIPT@@@", "console.log('Asset loaded');");
+		  starter = jsshjs;
     	  js = new Js(this);
-		  loadScript(jsshjs, System.getenv("JSSH_LOADER"));
+		  loadScript(starter, System.getenv("JSSH_LOADER"));
 		  log(name + "::" + loadScript(script, scriptFile).s);
 		  } catch(Exception e) {
 				  reportError("load::" + scriptFile + "::" + progress + "::" + e);
@@ -164,23 +163,6 @@ public class Jssh implements JsActivity {
     } 
     return sb.toString();
   }
-
-  /**
-   * read source code from asset file
-   * @param asset filename
-   * @return full source code content
-   */
-/*
-  public String asset2String(String asset) {
-    String ret = "";
-    try {
-     ret = inputStream2String(getAssets().open(asset));
-     } catch(IOException ioe) {
-       reportError("asset2String::" +ioe);
-     }
-     return ret;
-  }
-*/
 
   /**
    * read source code from external storage file
@@ -223,7 +205,40 @@ public class Jssh implements JsActivity {
 	}
 	return o;
   }
+  
+  private Jssh self = this;
 
+  /**
+   * JsSpawner:
+   *   execute a script in a different scope
+   *   load asset starter before loading script to share global context (Lourah)
+   *   see $JSSH_STARTER for more
+   */
+  public class JsSpawner {
+     private String script;
+	 private String scriptName;
+	 private Js jsSpawned;
+	 public JsSpawner(String scriptName) {
+			 this.scriptName = scriptName;
+			 script = self.path2String(scriptName);
+			 jsSpawned = new Js(self);
+	 }
+  	 public Js.JsObject spawn() {
+			 Js.JsObject o;
+			 o = jsSpawned.eval(starter, System.getenv("JSSH_STARTER"));
+			 if (o.ok) {
+					 o = jsSpawned.eval(script, this.scriptName);
+			 }
+			 if (!o.ok) {
+					 reportError("JsSpawner::spawn::" + o.s);
+			 }
+			 return o;
+	 }
+  };
+
+  public Js.JsObject spawnScript(String scriptName) {
+		  return (new JsSpawner(scriptName)).spawn();
+  }
 
   /**
    * for display purpose
