@@ -55,7 +55,7 @@ class Js {
         cx.setOptimizationLevel(-1);
         // Added for Rhino-1.7.11.jar version
         cx.setLanguageVersion(Context.VERSION_ES6);
-        System.err.println(
+        this.activity.log(
                 "Rhino version:"
                         + org.mozilla.javascript.Context.getCurrentContext().getImplementationVersion());
         scope = this.cx.initStandardObjects();
