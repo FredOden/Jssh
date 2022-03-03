@@ -1,2 +1,12 @@
-PATH=$PATH:$JSSH/bin
-echo "JSSH::environment loaded"
+# /usr/bin/sh
+if [ -z "$JSSH" ];then 
+	echo "ERROR: please set JSSH variable to point on top directory of jssh installation"
+else
+	PATH=$PATH:$JSSH/bin
+	export PROOT_PREFIX=""
+	command -v termux-info && PROOT_PREFIX="proot "
+	export JSSH_JAVA=${PROOT_PREFIX}java
+	export JSSH_JAVAC=${PROOT_PREFIX}javac
+	export JSSH_JAR=${PROOT_PREFIX}jar
+	echo "JSSH::environment loaded $PROOT_PREFIX"
+fi
