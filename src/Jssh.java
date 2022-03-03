@@ -101,15 +101,14 @@ public class Jssh implements JsActivity {
 
 
   public static void main (String[] args){
-    System.out.println("jssh::started::" + args[0]);
-    new Jssh(args[0]);
+    new Jssh(args[0], args);
    }
 
   /**
    * Create this activity
    * @param savedInstanceState
    */
-  public Jssh(String scriptFile) {
+  public Jssh(String scriptFile, String [] args) {
 		  String progress = "init";
 		  try {
 		  progress = "load scriptFile::" + scriptFile;
@@ -131,6 +130,18 @@ public class Jssh implements JsActivity {
 		  progress = "load JS_APP_NAME::";
 		  jsshjs = jsshjs.replaceAll("@@@JS_APP_NAME@@@", name);
 		  progress = "load SCRIPT::";
+/*
+ * Adding args feature so the script can get command line arguments
+ */
+		  String aargs = "[";
+		  for(int i = 0; i < args.length; i++) {
+			  if (i > 0) aargs +=  ",";
+			  aargs +=  "'" + args[i] + "'";
+		  }
+		  aargs += "]";
+
+		  jsshjs = jsshjs.replaceAll("@@@ARGS@@@", aargs);
+
 		  jsshjs = jsshjs.replaceAll("@@@SCRIPT@@@", "console.log('Asset loaded');");
 		  starter = jsshjs;
     	  js = new Js(this);

@@ -11,6 +11,7 @@ var Lourah = {};
   this.frameworkDir = () => '@@@JSSH_FRAMEWORK_DIR@@@';
 
   this.dir = () => '@@@SCRIPT_FILE_LOCATION@@@';
+  this.args = () => @@@ARGS@@@;
 
   this.createThread = function(f){
     return new java.lang.Thread(new java.lang.Runnable({
