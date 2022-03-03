@@ -3,5 +3,5 @@
 # For my own weak memory ...
 #
 echo "To synchronize project from other my other working area"
-echo "git pull jssh master"
+echo "git fetch jssh master"
 echo "git reset --hard jssh/master"
