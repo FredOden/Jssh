@@ -69,21 +69,15 @@ var Lourah = Lourah || {};
 			,reset: () => '0'
 			,FOREGROUND: true
 			,BACKGROUND: false
-			,Style: function () {
-				this.attributes = [Lourah.ui.ansi.style.reset()];
+			,Style: function (aStyle) {
+				this.attributes = aStyle?aStyle:[Lourah.ui.ansi.style.reset()];
 				this.toString = () => Lourah.ui.ansi.style.start() + this.attributes.join(SEP) + Lourah.ui.ansi.style.end();
 			}
 		}
 		, screen: {
-
+			
 		}
 	}
 
 })();
 
-var style = Lourah.ui.ansi.style;
-
-var boldBlue = new style.Style();
-boldBlue.attributes = [style.bold(true), style.italic(true), style.blue(true), style.strikethrough(true)];
-var reset = new style.Style();
-console.log("::" + boldBlue + "Bold&Blue" + reset + "::");

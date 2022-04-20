@@ -208,7 +208,7 @@ public class Jssh implements JsActivity {
     return o;
   }
 
-  private Js.JsObject loadScript(String script, String scriptName) {
+  public Js.JsObject loadScript(String script, String scriptName) {
 	Js.JsObject o;
 	o = js.eval(script, scriptName);
 	if (!o.ok) {

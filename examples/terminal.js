@@ -1,22 +1,24 @@
+Activity.importScript(Lourah.jsFramework.parentDir() + "/Lourah.ui.ansi.js");
 /*
  * Emulate a terminal (input and output)
  */
-const PS1 = "=> ";
+
+const PS1 = (new Lourah.ui.ansi.style.Style( [ Lourah.ui.ansi.style.bold(true) , Lourah.ui.ansi.style.red(true) , Lourah.ui.ansi.style.italic(true) ])) + "=> " + (new Lourah.ui.ansi.style.Style());
 const CTRL_D = 4;
 const CTRL_J = 10;
 const CTRL_M = 13;
 
-var puts = s => {
+const puts = s => {
 	java.lang.System.out.print(s);
 	java.lang.System.out.flush();
 }
 
-var putc = c => puts(String.fromCharCode.apply(null, c));
+const putc = c => puts(String.fromCharCode.apply(null, c));
 
 var cwd = new java.io.File(java.lang.System.getProperty("user.dir"));
 
 
-var shell = (command) => {
+const shell = (command) => {
 	var p = java.lang.Runtime.getRuntime().exec(
 		[ "/bin/sh"
 			,"-c"
@@ -42,6 +44,8 @@ var shell = (command) => {
 	return r;
 }
 
+const rawInput = (onOff) => shell("/bin/stty " + (onOff?"raw -echo -iuclc":"sane") + " </dev/tty")
+
 const STATUS_OK = 0;
 const STATUS_EXIT = -4;
 
@@ -54,8 +58,8 @@ function parse(command) {
 			var tcwd;
 			if (cd[1]) tcwd=new java.io.File(cwd.getAbsolutePath(), cd[1]);
 			else tcwd = new java.io.File(java.lang.System.getenv("HOME"));
-			console.log("cwd::" + cwd.getAbsolutePath());
-			console.log("tcwd::" + tcwd.getAbsolutePath());
+			console.log("cwd::" + cwd.getCanonicalPath());
+			console.log("tcwd::" + tcwd.getCanonicalPath());
 			if (!tcwd.exists() || !tcwd.isDirectory()) throw "cannot change directory to " + tcwd;
 			cwd = tcwd;
 		} catch(e) {
@@ -71,7 +75,7 @@ function parse(command) {
 
 	if (command.charAt(0) === '=') {
 		try {
-			java.lang.System.out.println(eval(command.substring(1)));
+			java.lang.System.out.println(Activity.loadScript(command.substring(1), "stdin").s);
 		} catch(e) {
 			console.log("ERROR::" + e);
 		}
@@ -83,18 +87,31 @@ function parse(command) {
 	return STATUS_OK;
 }
 
-var rawInput = (onOff) => shell("/bin/stty " + (onOff?"raw -echo":"sane") + " </dev/tty")
 
 rawInput(true);
 puts(PS1);
-var tty = java.lang.System.console();
-var ttyReader = tty.reader();
+const tty = java.lang.System.console();
+const ttyReader = tty.reader();
 
 var commandBytes = [];
 var history = [];
 
+var input = [];
+var idx = 0;
+var getToken = () => {
+	var c;
+	if (idx === input.length) {
+		c = ttyReader.read();
+		idx = input.push(c);
+	}
+	if (c === ESC) {
+		
+	}
+}
+
 for(;;) {
 	var c = ttyReader.read();
+	//java.lang.System.out.println("c::" + c + "::" + ((c<32)?c:("'" + String.fromCharCode.apply(null, [c]) + "'\r")));
 	if (c === CTRL_D) break;
 
 	if (c === CTRL_J || c === CTRL_M) {
