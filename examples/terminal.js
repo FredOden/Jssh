@@ -74,22 +74,29 @@
 	function parse(command) {
 		if (command === "exit") return STATUS_EXIT;
 
+		if (command.charAt(0) === '!') {
+			var searchString = command.substring(1);
+
+			if (!isNaN(searchString)) {
+				var hIdx = Number(searchString);
+				if (Math.abs(hIdx) >= history.length) return -1
+				if (hIdx<0) return parse(history[history.length + hIdx]);
+				return parse(history[hIdx]);
+			}
+			
+			var search = new RegExp("^" + searchString);
+			for(var i = history.length - 1; i >= 0; i--) {
+				if (history[i].match(search)) return parse(history[i]);
+			}
+			java.lang.System.out.println("Not in history!");
+			return -1
+		}
 
 		if (command === "history") {
 			for(var i = 0; i < history.length; i++) {
 				java.lang.System.out.println(i + " - " + history[i]);
 			}
 			return STATUS_OK;
-		}
-
-		if (command.charAt(0) === '!') {
-			var search = new RegExp("^" + command.substring(1));
-			for(var i = history.length - 1; i >= 0; i--) {
-				console.log(i + "::" + history[i] + "::" + search);
-				if (history[i].match(search)) return parse(history[i]);
-			}
-			java.lang.System.out.println("Not in history!");
-			return -1
 		}
 
 
@@ -125,6 +132,7 @@
 		}
 
 		if (!run) {
+			console.log("run::<" + run + ">");
 			vars.set("_", shell(command).stdout);
 		}
 
@@ -159,11 +167,15 @@
 		if (c === CTRL_D) break;
 
 		if (c === CTRL_J || c === CTRL_M) {
-			let command = String.fromCharCode.apply(null, commandBytes);
+			let command = String.fromCharCode.apply(null, commandBytes).trim();
 			putc([CTRL_M, CTRL_J]);
 			rawInput(false);
-			let status = parse(command.trim());
-			if (status === STATUS_OK) history.push(command.trim());
+			let status = parse(command);
+			if (status === STATUS_OK) {
+				if (command.charAt(0) !== '!') {
+					if (history.indexOf(command) === -1) history.push(command);
+				}
+			}
 			rawInput(true);
 			if (status === STATUS_EXIT) break;
 			commandBytes = [];
