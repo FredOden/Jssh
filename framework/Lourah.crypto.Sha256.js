@@ -27,6 +27,28 @@ var Lourah = Lourah || {};
 	Lourah.crypto.Sha256 = {};
 	const Sha256 = Lourah.crypto.Sha256;
 
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  */
+/* SHA-256 (FIPS 180-4) implementation in JavaScript                  (c) Chris Veness 2002-2019  */
+/*                                                                                   MIT Licence  */
+/* www.movable-type.co.uk/scripts/sha256.html                                                     */
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  */
+
+
+/**
+ * SHA-256 hash function reference implementation.
+ *
+ * This is an annotated direct implementation of FIPS 180-4, without any optimisations. It is
+ * intended to aid understanding of the algorithm rather than for production use.
+ *
+ * While it could be used where performance is not critical, I would recommend using the ‘Web
+ * Cryptography API’ (developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/digest) for the browser,
+ * or the ‘crypto’ library (nodejs.org/api/crypto.html#crypto_class_hash) in Node.js.
+ *
+ * See csrc.nist.gov/groups/ST/toolkit/secure_hashing.html
+ *     csrc.nist.gov/groups/ST/toolkit/examples.html
+ */
+//class Sha256 {
+
     /**
      * Generates SHA-256 hash of string.
      *
@@ -37,8 +59,12 @@ var Lourah = Lourah || {};
      * @param   {string} [options.outFormat=hex] - Output format: 'hex' for string of contiguous
      *   hex bytes; 'hex-w' for grouping hex bytes into groups of (4 byte / 8 character) words.
      * @returns {string} Hash of msg as hex character string.
+     *
+     * @example
+     *   import Sha256 from './sha256.js';
+     *   const hash = Sha256.hash('abc'); // 'ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad'
      */
-     Lourah.crypto.Sha256.hash = function(msg, options) {
+    Lourah.crypto.Sha256.hash = function (msg, options) {
         const defaults = { msgFormat: 'string', outFormat: 'hex' };
         const opt = Object.assign(defaults, options);
 
@@ -61,51 +87,46 @@ var Lourah = Lourah || {};
             0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5, 0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3,
             0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2 ];
 
+	    K.map(x => x >>> 0);
+
         // initial hash value [§5.3.3]
         const H = [
             0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19 ];
 
+	    H.map(x => x >>> 0);
+
         // PREPROCESSING [§6.2.1]
 
         msg += String.fromCharCode(0x80);  // add trailing '1' bit (+ 0's padding) to string [§5.1.1]
-	//console.log("msg::" + msg);
 
         // convert string msg into 512-bit blocks (array of 16 32-bit integers) [§5.2.1]
-        const l = (msg.length/4) + 2; // length (in 32-bit integers) of msg + ‘1’ + appended length
+        const l = msg.length/4 + 2; // length (in 32-bit integers) of msg + ‘1’ + appended length
         const N = Math.ceil(l/16);  // number of 16-integer (512-bit) blocks required to hold 'l' ints
-	     console.log("@@@::l::" + l);
-	     console.log("@@@::N::" + N);
-        //const N = (l - 1) >> 4;
         const M = new Array(N);     // message M is N×16 array of 32-bit integers
 
         for (let i=0; i<N; i++) {
-            //M[i] = new Array(16);
-            M[i] = new Array(64);
+            M[i] = new Array(16);
             for (let j=0; j<16; j++) { // encode 4 chars per integer (64 per block), big-endian encoding
-                let ii = (i << 6) + (j << 2);
-                M[i][j] = (msg.charCodeAt(ii)<<24) | (msg.charCodeAt(ii + 1)<<16)
-                        | (msg.charCodeAt(ii + 2)<< 8) | (msg.charCodeAt(ii + 3)<< 0);
+                M[i][j] = (msg.charCodeAt(i*64+j*4+0)<<24) | (msg.charCodeAt(i*64+j*4+1)<<16)
+                        | (msg.charCodeAt(i*64+j*4+2)<< 8) | (msg.charCodeAt(i*64+j*4+3)<< 0);
             } // note running off the end of msg is ok 'cos bitwise ops on NaN return 0
         }
         // add length (in bits) into final pair of 32-bit integers (big-endian) [§5.1.1]
         // note: most significant word would be (len-1)*8 >>> 32, but since JS converts
         // bitwise-op args to 32 bits, we need to simulate this by arithmetic operators
-        const lenHi = ((msg.length-1)*8) / 0x100000000  /// Math.pow(2, 32);
+        const lenHi = ((msg.length-1)*8) / Math.pow(2, 32);
         const lenLo = ((msg.length-1)*8) >>> 0;
         M[N-1][14] = Math.floor(lenHi);
         M[N-1][15] = lenLo;
-	     console.log("@@@::lenHi::" + M[N-1][14]);
-	     console.log("@@@::lenLo::" + M[N-1][15]);
 
 
         // HASH COMPUTATION [§6.2.2]
 
         for (let i=0; i<N; i++) {
-            //const W = new Array(64);
-            const W = M[i];
+            const W = new Array(64);
 
             // 1 - prepare message schedule 'W'
-            //for (let t=0;  t<16; t++) W[t] = M[i][t];
+            for (let t=0;  t<16; t++) W[t] = M[i][t];
             for (let t=16; t<64; t++) {
                 W[t] = (Sha256.σ1(W[t-2]) + W[t-7] + Sha256.σ0(W[t-15]) + W[t-16]) >>> 0;
             }
@@ -168,24 +189,25 @@ var Lourah = Lourah || {};
      * Rotates right (circular right shift) value x by n positions [§3.2.4].
      * @private
      */
-    function ROTR(n, x) {return (x >>> n) | (x << (32-n));}
-    //Lourah.crypto.Sha256.ROTR = (n, x) => (x >>> n) | (x << (32-n));
+    Sha256.ROTR = function (n, x) {
+        return (x >>> n) | (x << (32-n));
+    }
+
 
     /**
      * Logical functions [§4.1.2].
      * @private
      */
-    Lourah.crypto.Sha256.Σ0 = (x) =>  ROTR(2,  x) ^ ROTR(13, x) ^ ROTR(22, x); 
-    Lourah.crypto.Sha256.Σ1 = (x) =>  ROTR(6,  x) ^ ROTR(11, x) ^ ROTR(25, x);
-    Lourah.crypto.Sha256.σ0 = (x) => ROTR(7,  x) ^ ROTR(18, x) ^ (x>>>3);
-    Lourah.crypto.Sha256.σ1 = (x) => ROTR(17, x) ^ ROTR(19, x) ^ (x>>>10);
-    Lourah.crypto.Sha256.Ch = (x, y, z)  => (x & y) ^ (~x & z);          // 'choice'
-    Lourah.crypto.Sha256.Maj = (x, y, z) => (x & y) ^ (x & z) ^ (y & z); // 'majority'
+    Sha256.Σ0 = function (x) { return Sha256.ROTR(2,  x) ^ Sha256.ROTR(13, x) ^ Sha256.ROTR(22, x); }
+    Sha256.Σ1 = function (x) { return Sha256.ROTR(6,  x) ^ Sha256.ROTR(11, x) ^ Sha256.ROTR(25, x); }
+    Sha256.σ0 = function (x) { return Sha256.ROTR(7,  x) ^ Sha256.ROTR(18, x) ^ (x>>>3);  }
+    Sha256.σ1 = function (x) { return Sha256.ROTR(17, x) ^ Sha256.ROTR(19, x) ^ (x>>>10); }
+    Sha256.Ch = function (x, y, z)  { return (x & y) ^ (~x & z); }          // 'choice'
+    Sha256.Maj = function (x, y, z) { return (x & y) ^ (x & z) ^ (y & z); } // 'majority'
 
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  */
 
-if (typeof module != 'undefined' && module.exports)  module.exports = Sha256;
 
 })();
