@@ -65,12 +65,20 @@ public class Jssh implements JsActivity {
    * multithreaded).
    * @param s  message
    */
-  public void log(String s) {
+  private void __log(String s) {
 	synchronized(this) {
 	Date now = new Date();
     logger.log(timestamp.format(now) + "   " + s);
 	}
   }
+
+  public void log(Object... args) {
+    StringBuilder sb = new StringBuilder();
+    for (Object o : args) {
+        sb.append(String.valueOf(o)).append(" ");
+    }
+    __log( sb.toString());
+}
 
 
   /**

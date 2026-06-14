@@ -6,5 +6,5 @@ interface JsActivity {
         public String path2String(String path);
   	public Js getJs();
   	public Js.JsObject importScript(String scriptName);
-	public void log(String s);
+	public void log(Object... args);
 	}
