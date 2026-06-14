@@ -4,7 +4,16 @@ if [ -z "$JSSH" ];then
 else
 	PATH=$PATH:$JSSH/bin
 	export PROOT_PREFIX=""
-	command -v termux-info && PROOT_PREFIX="proot "
+	if command -v termux-info;then
+	  PROOT_PREFIX="proot "
+	  if [ -f ~/.local/bin/jssh.sh ] && cmp -s ~/.local/bin/jssh.sh $JSSH/bin/jssh.sh; then
+	    echo "Termux jssh.sh ok"
+	    else
+	    echo "Termux install jssh.sh in ~/.local/bin"
+	    cp $JSSH/bin/jssh.sh ~/.local/bin/jssh.sh
+	    chmod 755 ~/.local/bin/jssh.sh
+	  fi
+	fi
 	export JSSH_JAVA=${PROOT_PREFIX}java
 	export JSSH_JAVAC=${PROOT_PREFIX}javac
 	export JSSH_JAR=${PROOT_PREFIX}jar
